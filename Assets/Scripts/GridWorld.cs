@@ -10,7 +10,10 @@ public class GridWorld : MonoBehaviour
     private int gridSize = 10;
     public int GetGridSize => gridSize;
 
-
+    private Vector2 currentApplePosition;
+    public Vector2 GetApplePosition => currentApplePosition;
+    
+    
     [SerializeField] private GameObject snakePrefab;
      private GameObject snake;
     
@@ -81,8 +84,8 @@ public class GridWorld : MonoBehaviour
             y = rg.Next(gridSize);
             
         } while (cellsPositions[x,y].state != WorldCell.CellState.EMPTY);
-        
-        
+
+        currentApplePosition = new Vector2(x, y);
         cellsPositions[x, y].state = WorldCell.CellState.APPLE;
         cellsPositions[x, y].ChangeColor();
 
