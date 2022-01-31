@@ -7,7 +7,7 @@ using Random = System.Random;
 
 public class GridWorld : MonoBehaviour
 {
-    private int gridSize = 10;
+    private int gridSize =5;
     public int GetGridSize => gridSize;
 
     private Vector2 currentApplePosition;

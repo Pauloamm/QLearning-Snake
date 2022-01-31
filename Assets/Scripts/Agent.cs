@@ -21,7 +21,7 @@ public class Agent : MonoBehaviour
     }
     
     private float timeLeftToMove;
-    private float timer = 0.1f;
+    private float timer = 0.05f;
 
     struct State
     {
@@ -38,10 +38,12 @@ public class Agent : MonoBehaviour
         public bool appleOnTop;
     }
 
-    private Dictionary<State, Dictionary<Func<int>, int>> qDic;
+    private Dictionary<State, Dictionary<Func<int>, float>> qDic;
     
     private int[,] qTable;
     private float epsilon = 0.1f;
+    float alpha = 0.1f;
+    float gamma = 0.6f;
     
     
     private List<Func<int>> actions;
@@ -61,13 +63,13 @@ public class Agent : MonoBehaviour
         actions.Add(MoveDown);
         
         
-        qDic = new Dictionary<State, Dictionary<Func<int>, int>>();
+        qDic = new Dictionary<State, Dictionary<Func<int>, float>>();
 
         for (int y = 0; y < currentWorld.GetGridSize; y++)
         {
             for (int x = 0; x < currentWorld.GetGridSize; x++)
             {
-                Dictionary<Func<int>, int> tempDict = new Dictionary<Func<int>, int>();
+                Dictionary<Func<int>, float> tempDict = new Dictionary<Func<int>, float>();
                 foreach (Func<int> a in actions) tempDict.Add(a,0);
 
                 //State tempState = new State(new Vector2(x, y), true, true); 
@@ -80,11 +82,6 @@ public class Agent : MonoBehaviour
             }
         }
 
-
-        foreach (var f in qDic)
-        {
-            Debug.Log(f);
-        }
         
         
         timeLeftToMove = timer;
@@ -102,32 +99,20 @@ public class Agent : MonoBehaviour
     
     private void QLearning()
     {
-        //int currentState = GetStateL();
-        State currentState = GetStateD();
-        
-        
-        Debug.Log(currentState.snakePosition);
-        Debug.Log(currentState.appleOnRight);
-        Debug.Log(currentState.appleOnTop);
+        State currentState = GetState();
+
+        Func<int> actionToExecuteInCurrentState = GetAction(currentState);
 
         
+      
+        int reward = actionToExecuteInCurrentState.Invoke();
+
+        State nextState = GetState();
+        Func<int> bestActionInNext = BestActionInState(nextState);
         
-        //int action = GetAction(currentState);
-        Dictionary<Func<int>, int> actionsValuesForCurrentState = qDic[currentState];
+        qDic[currentState][actionToExecuteInCurrentState] = (1-alpha)* qDic[currentState][actionToExecuteInCurrentState] + 
+                                                            alpha * (reward + gamma * qDic[nextState][bestActionInNext] - qDic[currentState][actionToExecuteInCurrentState]);
 
-
-        KeyValuePair<Func<int>, int> bestAction = qDic[currentState].First();
-        
-        int tempValue = 0;
-        foreach ( KeyValuePair<Func<int>,int> k in actionsValuesForCurrentState)
-        {
-            if (k.Value >= tempValue)
-            {
-                bestAction = k;
-            }
-        }
-
-        qDic[currentState][bestAction.Key]= bestAction.Key.Invoke();
 
         //Debug.Log("CurrentState: " + currentState);
         //Debug.Log("Action: " + action);
@@ -136,41 +121,46 @@ public class Agent : MonoBehaviour
         //qTable[currentState, action] = actions[action].Invoke();
     }
     
-    private int GetAction(int currentState)
-    {
-        Random rg = new Random();
-
-        if (rg.NextDouble() < epsilon)
-            return rg.Next(0, 4);
-
-        
-        int bestActionValue = 0;
-
-        for (int i = 0; i < actions.Count; i++)
-        {
-            if (qTable[currentState, i] >= bestActionValue)
-                bestActionValue = i;
-        }
-
-        return bestActionValue;
-        
-    }
-
-    private int GetStateL()
-    {
-        //first states
-        return (int) (currentSnake.transform.position.x + currentSnake.transform.position.y * currentWorld.GetGridSize);
-    } 
-
-    private State GetStateD()
+    private State GetState()
     {
         bool isAppleOnRight = currentSnake.transform.position.x < currentWorld.GetApplePosition.x;
         bool isAppleOnTop = currentSnake.transform.position.y < currentWorld.GetApplePosition.y;
 
         return new State(currentSnake.transform.position, isAppleOnRight, isAppleOnTop);
 
-    } 
-    
+    }
+
+    private Func<int> GetAction(State state)
+    {
+        Random rg = new Random();
+        float randomFloat = (float) rg.NextDouble();
+        if (randomFloat < epsilon) return actions[rg.Next(4)];
+
+
+        return BestActionInState(state);
+
+    }
+    private Func<int> BestActionInState(State state)
+    {
+        
+        
+        
+        Dictionary<Func<int>, float> actionsValuesForCurrentState = qDic[state];
+        
+        KeyValuePair<Func<int>, float> bestAction = qDic[state].First();
+        
+        foreach ( KeyValuePair<Func<int>,float> k in actionsValuesForCurrentState)
+        {
+            if (k.Value >= bestAction.Value)
+                bestAction = k;
+            
+        }
+
+        return bestAction.Key;
+
+    }
+
+    private State GetNextState(State state, Func<int>)
     
     // Update is called once per frame
     void Update()
