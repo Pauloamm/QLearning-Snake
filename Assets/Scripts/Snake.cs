@@ -16,8 +16,9 @@ public class Snake : MonoBehaviour
     private List<GameObject> snakeParts;
 
     public GameObject snakePartToInstantiate;
-
-
+    public Material snakeHeadMaterial;
+    public Vector2 GetSnakePosition => snakeParts[0].transform.position;
+    
 
     // private List<Func<int>> actions;
 
@@ -43,8 +44,10 @@ public class Snake : MonoBehaviour
 
 
         Vector2 startCell = new Vector2(randomIndexXInWorld, randomIndexYInWorld);
-        GameObject snakeHead = Instantiate(snakePartToInstantiate, startCell, Quaternion.identity, this.transform);
+        //Vector2 startCell = new Vector2(world.GetGridSize/2-1, world.GetGridSize/2-1);
 
+        GameObject snakeHead = Instantiate(snakePartToInstantiate, startCell, Quaternion.identity, this.transform);
+        snakeHead.GetComponent<MeshRenderer>().material = snakeHeadMaterial;
         //world.SnakeCell(startCell);
         snakeParts.Add(snakeHead);
 
@@ -84,7 +87,7 @@ public class Snake : MonoBehaviour
         {
             case WorldCell.CellState.EMPTY:
                 MoveSnake(newPosition);
-                return -1;
+                return 0;
 
             case WorldCell.CellState.APPLE:
                 GrowSnake(newPosition);

@@ -7,7 +7,7 @@ using Random = System.Random;
 
 public class GridWorld : MonoBehaviour
 {
-    private int gridSize =5;
+    private int gridSize =10;
     public int GetGridSize => gridSize;
 
     private Vector2 currentApplePosition;
@@ -20,6 +20,16 @@ public class GridWorld : MonoBehaviour
     
     [SerializeField] private GameObject cellToSpawn;
     private WorldCell[,] cellsPositions;
+
+
+
+    public bool IsCellDanger(Vector2 cellPos)
+    {
+        return (IsOutsideBounds(cellPos) || cellsPositions[(int)cellPos.x,(int) cellPos.y].state == WorldCell.CellState.SNAKE);
+    }
+
+    private bool IsOutsideBounds(Vector2 cellPos) => cellPos.x < 0 || cellPos.x >= gridSize || 
+                                                     cellPos.y < 0 || cellPos.y >= gridSize;
     
     public void EmptyCell(Vector2 coords)
     {
@@ -56,8 +66,9 @@ public class GridWorld : MonoBehaviour
             //wc.WorldCoordinates = temp;
         }
         
-        CreateNewApple();
         CreateSnake();
+
+        CreateNewApple();
         
         
         GameObject.Find("QLearningAgent").GetComponent<Agent>().SetCurrentWorld = this;
@@ -67,7 +78,7 @@ public class GridWorld : MonoBehaviour
 
     private void CreateSnake()
     {
-        snake = Instantiate(snakePrefab);
+        snake = Instantiate(snakePrefab,Vector3.zero,Quaternion.identity );
         Snake snakeScript =  snake.GetComponent<Snake>();
         snakeScript.SetWorld = this;
 

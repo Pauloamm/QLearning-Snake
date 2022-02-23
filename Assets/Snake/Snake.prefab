@@ -45,3 +45,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   snakePartToInstantiate: {fileID: 1620411556591892346, guid: eda0c24086638ad4dacbe0b1d6ab36e3,
     type: 3}
+  snakeHeadMaterial: {fileID: 2100000, guid: f18c36ab045dc6841989dd3a7629e044, type: 2}
